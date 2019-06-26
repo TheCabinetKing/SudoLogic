@@ -1,4 +1,5 @@
 import os #Used for token auth.
+import time #used only for testing.
 from slackclient import SlackClient
 
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
@@ -24,6 +25,14 @@ def parse_incoming(slack_events):
             else:
                 print("Invalid channel detected. Response culled.")
 
+def alert():
+    #I'm assuming Redis comes in here. Placeholder data in the meantime.
+    #while(redis not out of data) needed unless we get an array of dictionaries or something. Which would work, but then needs us to clear sent info twice.
+    data = {"AlertThreshold": "Above 90 last 15 minutes", "AlertSource": "Intern Consulting, Co.", "AlertID": "164281", "AlertStatus": "Warning"}
+    for approved_channel in channels:
+        slack_client.api_call("chat.postMessage",channel=approved_channel,text="Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}")
+    #Empty dictionary in preparation for next in queue. Currently useless.
+    data.clear()
 #Ensure no accidents cause weird duplicate cases.
 if __name__ == "__main__":
     if(slack_client.rtm_connect(with_team_state=False)):
@@ -32,5 +41,7 @@ if __name__ == "__main__":
         canary_id = slack_client.api_call("auth.test")["user_id"]
         while True:
             message, channel = parse_incoming(slack_client.rtm_read())
+            alert()
+            time.sleep(20)
     else:
         print("Connection failed; see traceback above for details.")
