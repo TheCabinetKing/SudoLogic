@@ -1,5 +1,5 @@
 import os #Used for token auth.
-import time #used only for testing.
+import time #Used for sleep to avoid network strain.
 from slackclient import SlackClient
 import json
 
@@ -9,7 +9,6 @@ slack_client = SlackClient(token)
 canary_id = None
 
 #Global constants.
-PASSKEY = "217 Lambda" #Passkey to access testing. Used to avoid spam. Deprecated, and will be removed in final version.
 CONFIG_OPTIONS = { #Config options, as the name implies. Taken from config.ini, and used to communicate permitted channels etc. between instances.
     "channels": [] #List of approved channels for posting.
 }
@@ -21,7 +20,8 @@ def parse_incoming(slack_events):
         if event["type"] == "message" and not "subtype" in event:
             channel = event["channel"]
             msg = event["text"]
-            msg.strip(',.').lower()
+            msg = msg.strip(',.').lower()
+            print(msg)
             #Subscription mechanics for direct messaging.
             if(channel.startswith('D')):
                 #Subscription
@@ -38,8 +38,20 @@ def parse_incoming(slack_events):
                         setconfig(CONFIG_OPTIONS)
                     slack_client.api_call("chat.postMessage",channel=channel,text="Delisting successful.")
                     return
-            else:
-                print("Invalid channel detected. Response culled.")
+            if(msg.startswith("<@"+canary_id.lower()+">")):
+                msg=msg.replace("<@"+canary_id.lower()+"> ",'')
+                print(msg)
+                if(msg.startswith("list")):
+                    CONFIG_OPTIONS["channels"].append(channel)
+                    setconfig(CONFIG_OPTIONS)
+                    slack_client.api_call("chat.postMessage",channel=channel,text="Confirmed; channel added to alert list.")
+                    return
+                if(msg.startswith("delist")):
+                    if channel in CONFIG_OPTIONS["channels"]:
+                        CONFIG_OPTIONS["channels"].remove(channel)
+                        setconfig(CONFIG_OPTIONS)
+                    slack_client.api_call("chat.postMessage",channel=channel,text="Delisting successful.")
+                    return
 
 def alert(data):
     #RQ uses this function to Do Stuff(tm). Placeholder data in the meantime.
@@ -73,10 +85,15 @@ def handshake():
     #Get bot ID from auth call. This will be useful for mention detection.
     try:
         canary_id = slack_client.api_call("auth.test")["user_id"]
+    #Auth errors are usually issues involving tokens and env variables.
     except:
         print("Error authenticating:")
         print(slack_client.api_call("auth.test")["error"])
     return status
+
+#This only exists to alter canary_id because handshake's return is taken.
+def get_id():
+    return slack_client.api_call("auth.test")["user_id"]
 
 #Ensure only one message listener active ('manual process').
 if __name__ == "__main__":
@@ -84,6 +101,7 @@ if __name__ == "__main__":
     print("Config attained. Channel contents: ")
     for p in CONFIG_OPTIONS["channels"]: print(p)
     if handshake():
+        canary_id = get_id()
         print("Connection established.")
         while True:
             parse_incoming(slack_client.rtm_read())
