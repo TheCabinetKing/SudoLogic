@@ -13,6 +13,8 @@ CONFIG_OPTIONS = { #Config options, as the name implies. Taken from config.ini, 
     "channels": [] #List of approved channels for posting.
 }
 
+def sendmsg(channel,tosend):
+    slack_client.api_call("chat.postMessage",channel=channel,text=tosend)
 
 
 def parse_incoming(slack_events):
@@ -29,40 +31,50 @@ def parse_incoming(slack_events):
                     if channel not in CONFIG_OPTIONS["channels"]:
                         CONFIG_OPTIONS["channels"].append(channel)
                         setconfig(CONFIG_OPTIONS)
-                    slack_client.api_call("chat.postMessage",channel=channel,text="Subscription confirmed. If this is not in a private channel, please immediately deactivate me.")
+                    sendmsg(channel,"Subscription confirmed. If this is not in a private channel, please immediately deactivate me.")
                     return
                 #Unsubscription
                 if(msg.startswith("unsubscribe")):
                     if channel in CONFIG_OPTIONS["channels"]:
                         CONFIG_OPTIONS["channels"].remove(channel)
                         setconfig(CONFIG_OPTIONS)
-                    slack_client.api_call("chat.postMessage",channel=channel,text="Delisting successful.")
+                    sendmsg(channel,"Delisting successful.")
                     return
+                #Remember to document all added commands in *both* help responsess!
+                if(msg.startswith("help")):
+                    sendmsg(channel,"All commands are directly messaged, or prefaced with a mention.")
+                    sendmsg(channel,"Direct commands:\n\t*subscribe* - Add your account to the list for direct messaging.\n\t*unsubscribe* - Remove your account from the direct messaging list.\n")
+                    sendmsg(channel,"Mention commands:\n\t*list* - Add the current channel to the alert list.\n\t*delist* - Remove the current channel from the alert list.")
             #Check for "@canarybot" etc.; direct mentions.
             if(msg.startswith("<@"+canary_id.lower()+">")):
                 #Scrub mention so we can check the actual command.
                 msg=msg.replace("<@"+canary_id.lower()+"> ",'')
-                print(msg)
                 #Add current channel to alert list.
                 if(msg.startswith("list")):
-                    CONFIG_OPTIONS["channels"].append(channel)
-                    setconfig(CONFIG_OPTIONS)
-                    slack_client.api_call("chat.postMessage",channel=channel,text="Confirmed; channel added to alert list.")
+                    if channel not in CONFIG_OPTIONS["channels"]:
+                        CONFIG_OPTIONS["channels"].append(channel)
+                        setconfig(CONFIG_OPTIONS)
+                        sendmsg(channel,"Confirmed; channel added to alert list.")
                     return
                 #Remove current channel from alert list.
                 if(msg.startswith("delist")):
                     if channel in CONFIG_OPTIONS["channels"]:
                         CONFIG_OPTIONS["channels"].remove(channel)
                         setconfig(CONFIG_OPTIONS)
-                    slack_client.api_call("chat.postMessage",channel=channel,text="Delisting successful.")
+                    sendmsg(channel,"Delisting successful.")
                     return
+                #Remember to document all added commands in *both* help responsess!
+                if(msg.startswith("help")):
+                    sendmsg(channel,"All commands are directly messaged, or prefaced with a mention.")
+                    sendmsg(channel,"Direct commands:\n\t*subscribe* - Add your account to the list for direct messaging.\n\t*unsubscribe* - Remove your account from the direct messaging list.\n")
+                    sendmsg(channel,"Mention commands:\n\t*list* - Add the current channel to the alert list.\n\t*delist* - Remove the current channel from the alert list.")
 
 def alert(data):
     #RQ uses this function to Do Stuff(tm). Placeholder data in the meantime.
     #data = {"AlertThreshold": "Above 90 last 15 minutes", "AlertSource": "Intern Consulting, Co.", "AlertID": "164281", "AlertStatus": "Warning"}
     output = {"AlertSource": data.get("AlertSource","{Unknown Source}"), "AlertStatus": data.get("AlertStatus","{Unknown Status}"), "AlertThreshold": data.get("AlertThreshold","{Unknown Threshold}"), "AlertID": data.get("AlertID","{Unknown ID}")}
     for approved_channel in CONFIG_OPTIONS["channels"]:
-        slack_client.api_call("chat.postMessage",channel=approved_channel,text="Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
+        sendmsg(approved_channel,"Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
     #Empty dictionary in preparation for next in queue. Currently useless.
     data.clear()
 
@@ -85,18 +97,19 @@ def getconfig(config_tgt):
         setconfig(config_tgt)
         return config_tgt
 
+#Establish connection and use auth.test to confirm server compliance.
 def handshake():
     status = slack_client.rtm_connect(with_team_state=False)
     #Get bot ID from auth call. This will be useful for mention detection.
     try:
-        canary_id = slack_client.api_call("auth.test")["user_id"]
+        slack_client.api_call("auth.test")["user_id"]
     #Auth errors are usually issues involving tokens and env variables.
     except:
         print("Error authenticating:")
         print(slack_client.api_call("auth.test")["error"])
     return status
 
-#This only exists to alter canary_id because handshake's return is taken.
+#Used to assign canary_id.
 def get_id():
     return slack_client.api_call("auth.test")["user_id"]
 
@@ -108,6 +121,7 @@ if __name__ == "__main__":
     if handshake():
         canary_id = get_id()
         print("Connection established.")
+        #Main loop; add all constant behaviour here, but be careful for slowdown.
         while True:
             parse_incoming(slack_client.rtm_read())
             time.sleep(0.5) #Avoid DOSing both sides by only checking once every 0.5 seconds.
