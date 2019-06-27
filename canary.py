@@ -38,14 +38,18 @@ def parse_incoming(slack_events):
                         setconfig(CONFIG_OPTIONS)
                     slack_client.api_call("chat.postMessage",channel=channel,text="Delisting successful.")
                     return
+            #Check for "@canarybot" etc.; direct mentions.
             if(msg.startswith("<@"+canary_id.lower()+">")):
+                #Scrub mention so we can check the actual command.
                 msg=msg.replace("<@"+canary_id.lower()+"> ",'')
                 print(msg)
+                #Add current channel to alert list.
                 if(msg.startswith("list")):
                     CONFIG_OPTIONS["channels"].append(channel)
                     setconfig(CONFIG_OPTIONS)
                     slack_client.api_call("chat.postMessage",channel=channel,text="Confirmed; channel added to alert list.")
                     return
+                #Remove current channel from alert list.
                 if(msg.startswith("delist")):
                     if channel in CONFIG_OPTIONS["channels"]:
                         CONFIG_OPTIONS["channels"].remove(channel)
@@ -56,8 +60,9 @@ def parse_incoming(slack_events):
 def alert(data):
     #RQ uses this function to Do Stuff(tm). Placeholder data in the meantime.
     #data = {"AlertThreshold": "Above 90 last 15 minutes", "AlertSource": "Intern Consulting, Co.", "AlertID": "164281", "AlertStatus": "Warning"}
+    output = {"AlertSource": data.get("AlertSource","{Unknown Source}"), "AlertStatus": data.get("AlertStatus","{Unknown Status}"), "AlertThreshold": data.get("AlertThreshold","{Unknown Threshold}"), "AlertID": data.get("AlertID","{Unknown ID}")}
     for approved_channel in CONFIG_OPTIONS["channels"]:
-        slack_client.api_call("chat.postMessage",channel=approved_channel,text="Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**data))
+        slack_client.api_call("chat.postMessage",channel=approved_channel,text="Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
     #Empty dictionary in preparation for next in queue. Currently useless.
     data.clear()
 
