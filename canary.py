@@ -3,12 +3,13 @@ import time #used only for testing.
 from slackclient import SlackClient
 import json
 
-slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+token=os.environ.get('SLACK_BOT_TOKEN')
+slack_client = SlackClient(token)
 
 canary_id = None
 
 #Global constants.
-PASSKEY = "217 Lambda" #Passkey to access testing. Used to avoid spam.
+PASSKEY = "217 Lambda" #Passkey to access testing. Used to avoid spam. Deprecated, and will be removed in final version.
 CONFIG_OPTIONS = { #Config options, as the name implies. Taken from config.ini, and used to communicate permitted channels etc. between instances.
     "channels": [] #List of approved channels for posting.
 }
@@ -42,7 +43,7 @@ def parse_incoming(slack_events):
 
 def alert(data):
     #RQ uses this function to Do Stuff(tm). Placeholder data in the meantime.
-    data = {"AlertThreshold": "Above 90 last 15 minutes", "AlertSource": "Intern Consulting, Co.", "AlertID": "164281", "AlertStatus": "Warning"}
+    #data = {"AlertThreshold": "Above 90 last 15 minutes", "AlertSource": "Intern Consulting, Co.", "AlertID": "164281", "AlertStatus": "Warning"}
     for approved_channel in CONFIG_OPTIONS["channels"]:
         slack_client.api_call("chat.postMessage",channel=approved_channel,text="Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**data))
     #Empty dictionary in preparation for next in queue. Currently useless.
@@ -70,7 +71,11 @@ def getconfig(config_tgt):
 def handshake():
     status = slack_client.rtm_connect(with_team_state=False)
     #Get bot ID from auth call. This will be useful for mention detection.
-    canary_id = slack_client.api_call("auth.test")["user_id"]
+    try:
+        canary_id = slack_client.api_call("auth.test")["user_id"]
+    except:
+        print("Error authenticating:")
+        print(slack_client.api_call("auth.test")["error"])
     return status
 
 #Ensure only one message listener active ('manual process').
