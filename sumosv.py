@@ -20,6 +20,7 @@ def getalert():
 def slackping(data):
     #Watch as the Great and Mysterious Internio quadruples the size of a file with a single line!
     import canary
+    canary.slack_client = canary.getclient(canary.token)
     print("Handshaking...")
     canary.handshake()
     print("Getting config...")

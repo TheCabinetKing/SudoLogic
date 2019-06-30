@@ -4,7 +4,7 @@ from slackclient import SlackClient
 import json
 
 token=os.environ.get('SLACK_BOT_TOKEN')
-slack_client = SlackClient(token)
+slack_client = None
 
 canary_id = None
 
@@ -12,6 +12,10 @@ canary_id = None
 CONFIG_OPTIONS = { #Config options, as the name implies. Taken from config.ini, and used to communicate permitted channels etc. between instances.
     "channels": [] #List of approved channels for posting.
 }
+
+def getclient(token):
+    slack_client=SlackClient(token)
+    return slack_client
 
 def sendmsg(channel,tosend):
     slack_client.api_call("chat.postMessage",channel=channel,text=tosend)
@@ -69,9 +73,8 @@ def parse_incoming(slack_events):
                     sendmsg(channel,"Direct commands:\n\t*subscribe* - Add your account to the list for direct messaging.\n\t*unsubscribe* - Remove your account from the direct messaging list.\n")
                     sendmsg(channel,"Mention commands:\n\t*list* - Add the current channel to the alert list.\n\t*delist* - Remove the current channel from the alert list.")
 
+#Sends alerts to Slack.
 def alert(data):
-    #RQ uses this function to Do Stuff(tm). Placeholder data in the meantime.
-    #data = {"AlertThreshold": "Above 90 last 15 minutes", "AlertSource": "Intern Consulting, Co.", "AlertID": "164281", "AlertStatus": "Warning"}
     output = {"AlertSource": data.get("AlertSource","{Unknown Source}"), "AlertStatus": data.get("AlertStatus","{Unknown Status}"), "AlertThreshold": data.get("AlertThreshold","{Unknown Threshold}"), "AlertID": data.get("AlertID","{Unknown ID}")}
     for approved_channel in CONFIG_OPTIONS["channels"]:
         sendmsg(approved_channel,"Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
@@ -115,6 +118,7 @@ def get_id():
 
 #Ensure only one message listener active ('manual process').
 if __name__ == "__main__":
+    slack_client=getclient(token)
     CONFIG_OPTIONS = getconfig(CONFIG_OPTIONS)
     print("Config attained. Channel contents: ")
     for p in CONFIG_OPTIONS["channels"]: print(p)
