@@ -11,7 +11,17 @@ class Slack_Client:
     def rtm_connect():
         pass
 
+class Queue:
+    def enqueue():
+        pass
+
+class Request:
+    def get_json():
+        pass
+
 slack_client = patch("__main__.Slack_Client")
+q = patch("__main__.Queue")
+request = patch("__main__.Request")
 
 class TestCanaryMethods(unittest.TestCase):
     def test_alert_complete(self):
@@ -36,7 +46,6 @@ class TestCanaryMethods(unittest.TestCase):
     def test_getconfig(self):
         curr_config = {"channels": ["Nope"]}
         curr_config = canary.getconfig(curr_config)
-        print(curr_config["channels"])
         assert(curr_config["channels"]==["DDD"])
 
     def test_handshake(self):
@@ -51,3 +60,17 @@ class TestCanaryMethods(unittest.TestCase):
         canary.slack_client=slack_client
         assert(canary.handshake() is False)
         return True
+
+class TestSumoMethods(unittest.TestCase):
+    #As slackping is a set of function calls to canary, which has already been tested, its test has been omitted.
+    #The alert function is similarly composed of function calls, making this test of dubious worth.
+    def test_alert(self):
+        with sumosv.app.app_context():
+            dummydata = {"Hotel": "Trivago"}
+            q.enqueue = MagicMock()
+            request.get_json = MagicMock(return_value = dummydata)
+            sumosv.q = q
+            sumosv.request = request
+            sumosv.jsonify = MagicMock(return_value = True)
+            output = sumosv.getalert()
+            assert(output)

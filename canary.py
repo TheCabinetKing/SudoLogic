@@ -8,8 +8,8 @@ slack_client = None
 
 canary_id = None
 
-#Global constants.
-CONFIG_OPTIONS = { #Config options, as the name implies. Taken from config.ini, and used to communicate permitted channels etc. between instances.
+#Config options, as the name implies. Taken from config.ini, and used to communicate permitted channels etc. between instances.
+CONFIG_OPTIONS = {
     "channels": [] #List of approved channels for posting.
 }
 
@@ -122,7 +122,7 @@ def get_id():
 
 #Ensure only one message listener active.
 if __name__ == "__main__":
-    slack_client=getclient(token)
+    slack_client = getclient(token)
     CONFIG_OPTIONS = getconfig(CONFIG_OPTIONS)
     print("Config attained. Channel contents: ")
     for p in CONFIG_OPTIONS["channels"]: print(p)

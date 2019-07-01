@@ -7,11 +7,12 @@ app = Flask(__name__)
 redis_conn=Redis()
 q = Queue(connection=redis_conn)
 
+#It is assumed that all data is received intact.
 @app.route('/alert',methods=['POST'])
 def getalert():
     #Get message from posted json
-    msg =  request.get_json(force=True)
-    #Debug outputs to confirm reception
+    msg = request.get_json(force=True)
+    #Enqueue task for pinging slack, pass off to worker queue.
     q.enqueue(slackping,msg)
     #Return generic ack alongside 200 status.
     return jsonify(status="ACK")
