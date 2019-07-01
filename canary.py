@@ -13,14 +13,16 @@ CONFIG_OPTIONS = { #Config options, as the name implies. Taken from config.ini, 
     "channels": [] #List of approved channels for posting.
 }
 
+#Returns Slack client instance. Used for more or less everything; this declaration is global in most applications.
 def getclient(token):
     slack_client=SlackClient(token)
     return slack_client
 
+#"Shorthand" for the API call needed to send a message to a channel.
 def sendmsg(channel,tosend):
     slack_client.api_call("chat.postMessage",channel=channel,text=tosend)
 
-
+#Takes a set of slack events and sorts through them for messages. This is the 'controller' for the chatbot side, and all new commands should be added here.
 def parse_incoming(slack_events):
     for event in slack_events:
         if event["type"] == "message" and not "subtype" in event:
@@ -87,6 +89,7 @@ def setconfig(config_tgt):
     json.dump(config_tgt,config)
     config.close()
 
+#Config handler, called at the start of all canary instances, including alert propagators.
 def getconfig(config_tgt):
     #Try to get current config
     try:
@@ -110,13 +113,14 @@ def handshake():
     except:
         print("Error authenticating:")
         print(slack_client.api_call("auth.test")["error"])
+        return False
     return status
 
 #Used to assign canary_id.
 def get_id():
     return slack_client.api_call("auth.test")["user_id"]
 
-#Ensure only one message listener active ('manual process').
+#Ensure only one message listener active.
 if __name__ == "__main__":
     slack_client=getclient(token)
     CONFIG_OPTIONS = getconfig(CONFIG_OPTIONS)
