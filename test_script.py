@@ -26,15 +26,17 @@ class TestCanaryMethods(unittest.TestCase):
         data = {}
         canary.alert(data)
 
-    @patch('__main__.open',mock_open())
+    @patch('canary.open', mock_open())
     def test_setconfig(self):
+        patch('__main__.open', mock_open())
         curr_config = {"channels": []}
         canary.setconfig(curr_config)
 
-    @patch('__main__.open',mock_open(read_data="{\"channels\": [DDD]"))
+    @patch('canary.open', mock_open(read_data = "{\"channels\": [\"DDD\"]}"))
     def test_getconfig(self):
-        curr_config = {"channels": []}
-        canary.getconfig(curr_config)
+        curr_config = {"channels": ["Nope"]}
+        curr_config = canary.getconfig(curr_config)
+        print(curr_config["channels"])
         assert(curr_config["channels"]==["DDD"])
 
     def test_handshake(self):
@@ -49,52 +51,3 @@ class TestCanaryMethods(unittest.TestCase):
         canary.slack_client=slack_client
         assert(canary.handshake() is False)
         return True
-
-'''
-#Failed and passed tests counters
-testf=0
-testp=0
-
-if(test_alert_complete()):
-    ++testp
-else:
-    ++testf
-    print("FAILED: test_alert_complete")
-
-if(test_alert_incomplete()):
-    ++testp
-else:
-    ++testf
-    print("FAILED: test_alert_incomplete")
-
-if(test_alert_none()):
-    ++testp
-else:
-    ++testf
-    print("FAILED: test_alert_none")
-
-if(test_getconfig()):
-    ++testp
-else:
-    ++testf
-    print("FAILED: test_getconfig")
-
-if(test_handshake()):
-    ++testp
-else:
-    ++testf
-    print("FAILED: test_handshake")
-
-if(test_handshake_fail()):
-    ++testp
-else:
-    ++testf
-    print("FAILED: test_handshake_fail")
-
-if(test_setconfig()):
-    ++testp
-else:
-    ++testf
-    print("FAILED: test_setconfig")
-
-print("\nSummary:\nPassed:\t{}\nFailed:\t{}".format(testp,testf))'''
