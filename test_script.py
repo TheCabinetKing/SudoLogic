@@ -26,15 +26,40 @@ request = patch("__main__.Request")
 class TestCanaryMethods(unittest.TestCase):
     def test_alert_complete(self):
         data = {"AlertSource": "Intern Consulting", "AlertStatus": "Unimportant", "AlertThreshold": "Dehydration", "AlertID": "-000001"}
-        canary.alert(data)
+        slack_client.api_call = MagicMock(return_value = {"ok": True})
+        canary.slack_client=slack_client
+        canary.CONFIG_OPTIONS["channels"] = ["RXL931"]
+        result = canary.alert(data)
+        assert(result)
+        #Will fail test if cannot parse data.
 
     def test_alert_incomplete(self):
         data = {"AlertStatus": "Unimportant", "AlertID": "-000001"}
-        canary.alert(data)
+        slack_client.api_call = MagicMock(return_value = {"ok": True})
+        canary.slack_client=slack_client
+        canary.CONFIG_OPTIONS["channels"] = ["RXL931"]
+        result = canary.alert(data)
+        assert(result)
+        #Will fail test if cannot parse data.
 
     def test_alert_none(self):
         data = {}
-        canary.alert(data)
+        slack_client.api_call = MagicMock(return_value = {"ok": True})
+        canary.slack_client=slack_client
+        canary.CONFIG_OPTIONS["channels"] = ["RXL931"]
+        result = canary.alert(data)
+        assert(result)
+        #Will fail test if cannot parse "data".
+
+    def test_alert_api_down(self):
+        data = {}
+        slack_client.api_call = MagicMock(return_value = {"ok": False})
+        canary.slack_client=slack_client
+        canary.CONFIG_OPTIONS["channels"] = ["RXL931"]
+        canary.CONFIG_OPTIONS["deadline"] = 2
+        result = canary.alert(data)
+        assert(result is False)
+        #Will fail test if cannot detect API being down.
 
     @patch('canary.open', mock_open())
     def test_setconfig(self):

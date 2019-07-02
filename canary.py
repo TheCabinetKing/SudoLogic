@@ -10,7 +10,8 @@ canary_id = None
 
 #Config options, as the name implies. Taken from config.ini, and used to communicate permitted channels etc. between instances.
 CONFIG_OPTIONS = {
-    "channels": [] #List of approved channels for posting.
+    "channels": [], #List of approved channels for posting.
+    "deadline": 65 #Period the bot is willing to wait at once before giving up.  Used in alert().
 }
 
 #Returns Slack client instance. Used for more or less everything; this declaration is global in most applications.
@@ -20,7 +21,8 @@ def getclient(token):
 
 #"Shorthand" for the API call needed to send a message to a channel.
 def sendmsg(channel,tosend):
-    slack_client.api_call("chat.postMessage",channel=channel,text=tosend)
+    result = slack_client.api_call("chat.postMessage",channel=channel,text=tosend)
+    return result["ok"]
 
 #Takes a set of slack events and sorts through them for messages. This is the 'controller' for the chatbot side, and all new commands should be added here.
 def parse_incoming(slack_events):
@@ -79,9 +81,19 @@ def parse_incoming(slack_events):
 def alert(data):
     output = {"AlertSource": data.get("AlertSource","{Unknown Source}"), "AlertStatus": data.get("AlertStatus","{Unknown Status}"), "AlertThreshold": data.get("AlertThreshold","{Unknown Threshold}"), "AlertID": data.get("AlertID","{Unknown ID}")}
     for approved_channel in CONFIG_OPTIONS["channels"]:
-        sendmsg(approved_channel,"Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
+        result = sendmsg(approved_channel,"Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
+        if(result is False):
+            deadline = CONFIG_OPTIONS["deadline"]
+            wait = 1
+            while(result is False):
+                time.sleep(wait)
+                result = sendmsg(approved_channel,"Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
+                wait *= 2
+                if(wait>=deadline):
+                    return False
     #Empty dictionary in preparation for next in queue. Currently useless.
     data.clear()
+    return True
 
 #Overwrite config with current status.
 def setconfig(config_tgt):
