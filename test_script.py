@@ -84,7 +84,6 @@ class TestCanaryMethods(unittest.TestCase):
         slack_client.rtm_connect=MagicMock()
         canary.slack_client=slack_client
         assert(canary.handshake() is False)
-        return True
 
 class TestSumoMethods(unittest.TestCase):
     #As slackping is a set of function calls to canary, which has already been tested, its test has been omitted.
