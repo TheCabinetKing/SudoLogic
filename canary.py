@@ -19,7 +19,7 @@ def getclient(token):
     slack_client=SlackClient(token)
     return slack_client
 
-#"Shorthand" for the API call needed to send a message to a channel.
+#"Shorthand" for the API call needed to send a message to a channel. Returns True if successful, False otherwise.
 def sendmsg(channel,tosend):
     result = slack_client.api_call("chat.postMessage",channel=channel,text=tosend)
     return result["ok"]
@@ -77,7 +77,7 @@ def parse_incoming(slack_events):
                     sendmsg(channel,"Direct commands:\n\t*subscribe* - Add your account to the list for direct messaging.\n\t*unsubscribe* - Remove your account from the direct messaging list.\n")
                     sendmsg(channel,"Mention commands:\n\t*list* - Add the current channel to the alert list.\n\t*delist* - Remove the current channel from the alert list.")
 
-#Sends alerts to Slack.
+#Sends alerts to Slack. Returns True if successful, False otherwise (timeout).
 def alert(data):
     output = {"AlertSource": data.get("AlertSource","{Unknown Source}"), "AlertStatus": data.get("AlertStatus","{Unknown Status}"), "AlertThreshold": data.get("AlertThreshold","{Unknown Threshold}"), "AlertID": data.get("AlertID","{Unknown ID}")}
     for approved_channel in CONFIG_OPTIONS["channels"]:
