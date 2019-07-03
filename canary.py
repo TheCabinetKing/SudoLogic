@@ -11,7 +11,15 @@ canary_id = None
 #Config options, as the name implies. Taken from config.ini, and used to communicate permitted channels etc. between instances.
 CONFIG_OPTIONS = {
     "channels": [], #List of approved channels for posting.
-    "deadline": 65 #Period the bot is willing to wait at once before giving up.  Used in alert().
+    "deadline": 65, #Period the bot is willing to wait at once before giving up.  Used in alert().
+    "cmdlist_dir": { #List of direct-message commands.
+        "subscribe": "Add your account to the list for direct messaging.",
+        "unsubscribe": "Remove your account from the direct messaging list."
+    },
+    "cmdlist_men": {
+        "list": "Add the current channel to the alert list.",
+        "delist": "Remove the current channel from the alert list."
+    }
 }
 
 #Returns Slack client instance. Used for more or less everything; this declaration is global in most applications.
@@ -24,6 +32,31 @@ def sendmsg(channel,tosend):
     result = slack_client.api_call("chat.postMessage",channel=channel,text=tosend)
     return result["ok"]
 
+#Add channel to authorised channel list.
+def addchannel(channel):
+    if channel not in CONFIG_OPTIONS["channels"]:
+        CONFIG_OPTIONS["channels"].append(channel)
+        setconfig(CONFIG_OPTIONS)
+
+#Remove channel from authorised channel list.
+def rmchannel(channel):
+    if channel in CONFIG_OPTIONS["channels"]:
+        CONFIG_OPTIONS["channels"].remove(channel)
+        setconfig(CONFIG_OPTIONS)
+
+#Helper function for "help" command; commands can be added in the cmdlist variables. Remember that the existing config would override it!
+def sendhelp(channel):
+    sendmsg(channel,"All commands are directly messaged, or prefaced with a mention.")
+    msgout = "Direct commands:\n"
+    for command in CONFIG_OPTIONS["cmdlist_dir"]:
+        msgout = msgout + ("\t*"+command+"*"+" - "+CONFIG_OPTIONS["cmdlist_dir"][command]+"\n")
+    sendmsg(channel, msgout)
+    msgout="Mention commands:\n"
+    for command in CONFIG_OPTIONS["cmdlist_men"]:
+        msgout = msgout + ("\t*"+command+"*"+" - "+CONFIG_OPTIONS["cmdlist_men"][command]+"\n")
+    sendmsg(channel, msgout)
+
+
 #Takes a set of slack events and sorts through them for messages. This is the 'controller' for the chatbot side, and all new commands should be added here.
 def parse_incoming(slack_events):
     for event in slack_events:
@@ -31,51 +64,39 @@ def parse_incoming(slack_events):
             channel = event["channel"]
             msg = event["text"]
             msg = msg.strip(',.').lower()
-            print(msg)
+            ##print(msg)
             #Subscription mechanics for direct messaging.
             if(channel.startswith('D')):
                 #Subscription
                 if(msg.startswith("subscribe")):
-                    if channel not in CONFIG_OPTIONS["channels"]:
-                        CONFIG_OPTIONS["channels"].append(channel)
-                        setconfig(CONFIG_OPTIONS)
+                    addchannel(channel)
                     sendmsg(channel,"Subscription confirmed. If this is not in a private channel, please immediately deactivate me.")
                     return
                 #Unsubscription
                 if(msg.startswith("unsubscribe")):
-                    if channel in CONFIG_OPTIONS["channels"]:
-                        CONFIG_OPTIONS["channels"].remove(channel)
-                        setconfig(CONFIG_OPTIONS)
+                    rmchannel(channel)
                     sendmsg(channel,"Delisting successful.")
                     return
-                #Remember to document all added commands in *both* help responsess!
+                #Remember to document all added commands in *both* help responses!
                 if(msg.startswith("help")):
-                    sendmsg(channel,"All commands are directly messaged, or prefaced with a mention.")
-                    sendmsg(channel,"Direct commands:\n\t*subscribe* - Add your account to the list for direct messaging.\n\t*unsubscribe* - Remove your account from the direct messaging list.\n")
-                    sendmsg(channel,"Mention commands:\n\t*list* - Add the current channel to the alert list.\n\t*delist* - Remove the current channel from the alert list.")
+                    sendhelp(channel)
             #Check for "@canarybot" etc.; direct mentions.
             if(msg.startswith("<@"+canary_id.lower()+">")):
                 #Scrub mention so we can check the actual command.
                 msg=msg.replace("<@"+canary_id.lower()+"> ",'')
                 #Add current channel to alert list.
                 if(msg.startswith("list")):
-                    if channel not in CONFIG_OPTIONS["channels"]:
-                        CONFIG_OPTIONS["channels"].append(channel)
-                        setconfig(CONFIG_OPTIONS)
-                        sendmsg(channel,"Confirmed; channel added to alert list.")
+                    addchannel(channel)
+                    sendmsg(channel,"Confirmed; channel added to alert list.")
                     return
                 #Remove current channel from alert list.
                 if(msg.startswith("delist")):
-                    if channel in CONFIG_OPTIONS["channels"]:
-                        CONFIG_OPTIONS["channels"].remove(channel)
-                        setconfig(CONFIG_OPTIONS)
+                    rmchannel(channel)
                     sendmsg(channel,"Delisting successful.")
                     return
                 #Remember to document all added commands in *both* help responsess!
                 if(msg.startswith("help")):
-                    sendmsg(channel,"All commands are directly messaged, or prefaced with a mention.")
-                    sendmsg(channel,"Direct commands:\n\t*subscribe* - Add your account to the list for direct messaging.\n\t*unsubscribe* - Remove your account from the direct messaging list.\n")
-                    sendmsg(channel,"Mention commands:\n\t*list* - Add the current channel to the alert list.\n\t*delist* - Remove the current channel from the alert list.")
+                    sendhelp(channel)
 
 #Sends alerts to Slack. Returns True if successful, False otherwise (timeout).
 def alert(data):

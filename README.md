@@ -14,7 +14,7 @@ It is not necessary to run this for critical functionality, but it is recommende
 ## **Installation and Use**
 
 ### Flask Application
-Use your preferred deployment method for the Flask application. It must be run on port 80, and SumoLogic must direct log outputs to its IP address, port 80, with the url extension '/alert'.
+Use your preferred deployment method for the Flask application. It must be run on port 80, and SumoLogic must direct log outputs to its IP address with the url extension '/alert'.
 
 ### Canary
 Get the token for your desired bot from Slack's application interface. Set it as an environmental variable called 'SLACK_BOT_TOKEN' in Canary's environment. If you so wish, run canary.py as a test; to get a list of commands, PM it or mention it in a channel with the keyword 'help'.
