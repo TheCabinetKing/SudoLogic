@@ -1,2 +1,6 @@
 env/
+__pycache__/
+.vscode/
+config.ini
+dump.rdb
 *.log
