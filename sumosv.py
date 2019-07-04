@@ -18,6 +18,7 @@ def getalert():
     logging.info("JSON acquired.")
     #Enqueue task for pinging slack, pass off to worker queue.
     q.enqueue(slackping,msg)
+    #Enqueue other ping functions here when expanding.
     logging.info("Enqueue complete, returning ack.")
     #Return generic ack alongside 200 status.
     return jsonify(status="ACK")
