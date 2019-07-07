@@ -165,7 +165,7 @@ if __name__ == "__main__":
     slack_client = getclient(token)
     CONFIG_OPTIONS = getconfig(CONFIG_OPTIONS)
     print("Config attained. Channel contents: ")
-    channel_ls=""
+    channel_ls="" #Log output variable, no use after for loop's log update.
     for p in CONFIG_OPTIONS["channels"]:
         print(p)
         channel_ls=channel_ls+(p+"\t")

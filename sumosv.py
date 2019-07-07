@@ -1,7 +1,9 @@
 from flask import Flask,jsonify,request
+from flask_basicauth import BasicAuth
 from redis import Redis
 from rq import Queue
 import logging
+import os
 
 app = Flask(__name__)
 
@@ -9,8 +11,14 @@ redis_conn=Redis()
 q = Queue(connection=redis_conn)
 logging.basicConfig(filename="sumosv.log",filemode='a',format="%(asctime)s - %(name)s - %(levelname)s: %(message)s",datefmt="%y-%m-%d %H:%M:%S",level=logging.INFO)
 
+app.config['BASIC_AUTH_USERNAME'] = os.environ.get('SUMO_USER')
+app.config['BASIC_AUTH_PASSWORD'] = os.environ.get('SUMO_PASS')
+
+basic_auth=BasicAuth(app)
+
 #It is assumed that all data is received intact.
 @app.route('/alert',methods=['POST'])
+@basic_auth.required
 def getalert():
     logging.info("Post received!")
     #Get message from posted json
