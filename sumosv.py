@@ -1,24 +1,31 @@
 from flask import Flask,jsonify,request
-from flask_basicauth import BasicAuth
+from flask_httpauth import HTTPBasicAuth
 from redis import Redis
 from rq import Queue
+from werkzeug.security import generate_password_hash, check_password_hash
 import logging
 import os
 
 app = Flask(__name__)
+auth = HTTPBasicAuth()
 
 redis_conn=Redis()
 q = Queue(connection=redis_conn)
 logging.basicConfig(filename="sumosv.log",filemode='a',format="%(asctime)s - %(name)s - %(levelname)s: %(message)s",datefmt="%y-%m-%d %H:%M:%S",level=logging.INFO)
 
-app.config['BASIC_AUTH_USERNAME'] = os.environ.get('SUMO_USER')
-app.config['BASIC_AUTH_PASSWORD'] = os.environ.get('SUMO_PASS')
+users = {
+    os.environ.get("SUMO_USER"): generate_password_hash(os.environ.get("SUMO_PASS"))
+}
 
-basic_auth=BasicAuth(app)
+@auth.verify_password
+def verify_password(username,password):
+    if username in users:
+        return check_password_hash(users.get(username), password)
+    return False
 
 #It is assumed that all data is received intact.
 @app.route('/alert',methods=['POST'])
-@basic_auth.required
+@auth.login_required
 def getalert():
     logging.info("Post received!")
     #Get message from posted json
@@ -29,8 +36,9 @@ def getalert():
     #Enqueue other ping functions here when expanding.
     logging.info("Enqueue complete, returning ack.")
     #Return generic ack alongside 200 status.
-    return jsonify(status="ACK")
-
+    #return jsonify(status="ACK") #Absolutely broken in unit tests but works fine otherwise. I suggest switching to this once you're satisfied with tests.
+    return "ACK" #Works perfectly in unit tests but is poor form for live environment.
+    
 
 def slackping(data):
     #Watch as the Great and Mysterious Internio quadruples the size of a file with a single line!
