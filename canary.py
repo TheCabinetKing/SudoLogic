@@ -59,6 +59,37 @@ def sendhelp(channel):
     for command in CONFIG_OPTIONS["cmdlist_men"]:
         msgout = msgout + ("\t*"+command+"*"+" - "+CONFIG_OPTIONS["cmdlist_men"][command]+"\n")
     sendmsg(channel, msgout)
+    logging.info("Help message sent to channel {0}".format(channel))
+
+def dmhandler(channel,msg):
+    #Subscription
+    if(msg.startswith("subscribe")):
+        addchannel(channel)
+        sendmsg(channel,"Subscription confirmed.")
+        return
+    #Unsubscription
+    if(msg.startswith("unsubscribe")):
+        rmchannel(channel)
+        sendmsg(channel,"Delisting successful.")
+        return
+    #Remember to document all added commands in *both* help responses!
+    if(msg.startswith("help")):
+        sendhelp(channel)
+
+def mentionhandler(channel,msg):
+    #Add current channel to alert list.
+    if(msg.startswith("list")):
+        addchannel(channel)
+        sendmsg(channel,"Confirmed; channel added to alert list.")
+        return
+    #Remove current channel from alert list.
+    if(msg.startswith("delist")):
+        rmchannel(channel)
+        sendmsg(channel,"Delisting successful.")
+        return
+    #Remember to document all added commands in *both* help responsess!
+    if(msg.startswith("help")):
+        sendhelp(channel)
 
 #Takes a set of slack events and sorts through them for messages. This is the 'controller' for the chatbot side, and all new commands should be added here.
 def parse_incoming(slack_events):
@@ -68,38 +99,16 @@ def parse_incoming(slack_events):
             msg = event["text"]
             logging.info("Message received from {0} in channel {1}, contents: {2}".format(event["user"],channel,msg))
             msg = msg.strip(',.').lower()
-            #Subscription mechanics for direct messaging.
+            #Command handling for direct messaging.
             if(channel.startswith('D')):
-                #Subscription
-                if(msg.startswith("subscribe")):
-                    addchannel(channel)
-                    sendmsg(channel,"Subscription confirmed.")
-                    return
-                #Unsubscription
-                if(msg.startswith("unsubscribe")):
-                    rmchannel(channel)
-                    sendmsg(channel,"Delisting successful.")
-                    return
-                #Remember to document all added commands in *both* help responses!
-                if(msg.startswith("help")):
-                    sendhelp(channel)
+                dmhandler(channel,msg)
+                return
             #Check for "@canarybot" etc.; direct mentions.
             if(msg.startswith("<@"+canary_id.lower()+">")):
                 #Scrub mention so we can check the actual command.
                 msg=msg.replace("<@"+canary_id.lower()+"> ",'')
-                #Add current channel to alert list.
-                if(msg.startswith("list")):
-                    addchannel(channel)
-                    sendmsg(channel,"Confirmed; channel added to alert list.")
-                    return
-                #Remove current channel from alert list.
-                if(msg.startswith("delist")):
-                    rmchannel(channel)
-                    sendmsg(channel,"Delisting successful.")
-                    return
-                #Remember to document all added commands in *both* help responsess!
-                if(msg.startswith("help")):
-                    sendhelp(channel)
+                mentionhandler(channel,msg)
+                return
 
 #Sends alerts to Slack. Returns True if successful, False otherwise (timeout).
 def alert(data):
