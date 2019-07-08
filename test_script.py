@@ -5,13 +5,13 @@ import canary
 
 
 class Slack_Client:
-    def api_call():
+    def api_call(self):
         pass
-    def rtm_connect():
+    def rtm_connect(self):
         pass
 
 class Queue:
-    def enqueue():
+    def enqueue(self):
         pass
 
 
@@ -86,7 +86,7 @@ class TestSumoMethods(unittest.TestCase):
     #Test basic alert functionality; all this test cares about is whether it runs.
     def test_sumo(self):
         client = sumosv.app.test_client()
-        user=sumosv.os.environ.get("SUMO_BASICAUTH")
+        user="ABSOLUTEBARGAIN99"
         with sumosv.app.app_context():
             dummydata = {"Hotel": "Trivago"}
             q.enqueue = MagicMock()

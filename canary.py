@@ -18,7 +18,7 @@ CONFIG_OPTIONS = {
         "subscribe": "Add your account to the list for direct messaging.",
         "unsubscribe": "Remove your account from the direct messaging list."
     },
-    "cmdlist_men": {
+    "cmdlist_men": { #List of mention commands.
         "list": "Add the current channel to the alert list.",
         "delist": "Remove the current channel from the alert list."
     }
@@ -68,7 +68,6 @@ def parse_incoming(slack_events):
             msg = event["text"]
             logging.info("Message received from {0} in channel {1}, contents: {2}".format(event["user"],channel,msg))
             msg = msg.strip(',.').lower()
-            ##print(msg)
             #Subscription mechanics for direct messaging.
             if(channel.startswith('D')):
                 #Subscription
@@ -104,7 +103,12 @@ def parse_incoming(slack_events):
 
 #Sends alerts to Slack. Returns True if successful, False otherwise (timeout).
 def alert(data):
-    output = {"AlertSource": data.get("AlertSource","{Unknown Source}"), "AlertStatus": data.get("AlertStatus","{Unknown Status}"), "AlertThreshold": data.get("AlertThreshold","{Unknown Threshold}"), "AlertID": data.get("AlertID","{Unknown ID}")}
+    output = {
+        "AlertSource": data.get("AlertSource","{Unknown Source}"),
+        "AlertStatus": data.get("AlertStatus","{Unknown Status}"),
+        "AlertThreshold": data.get("AlertThreshold","{Unknown Threshold}"),
+        "AlertID": data.get("AlertID","{Unknown ID}")
+    }
     logging.info("Propagating alert...")
     for approved_channel in CONFIG_OPTIONS["channels"]:
         result = sendmsg(approved_channel,"Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
