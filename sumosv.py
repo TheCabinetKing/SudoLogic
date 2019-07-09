@@ -36,8 +36,7 @@ def getalert():
     #Enqueue other ping functions here when expanding.
     logging.info("Enqueue complete, returning ack.")
     #Return generic ack alongside 200 status.
-    #return jsonify(status="ACK") #Absolutely broken in unit tests but works fine otherwise. I suggest switching to this once you're satisfied with tests.
-    return "ACK" #Works perfectly in unit tests but is poor form for live environment.
+    return jsonify(status="ACK") #Absolutely broken in unit tests but works fine otherwise.
     
 
 def slackping(data):

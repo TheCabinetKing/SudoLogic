@@ -131,8 +131,6 @@ def alert(data):
                 if(wait>=deadline):
                     logging.error("Failed!")
                     return False
-    #Empty dictionary in preparation for next in queue. Currently useless.
-    data.clear()
     logging.info("Done!")
     return True
 

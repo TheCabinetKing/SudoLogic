@@ -91,7 +91,6 @@ class TestSumoMethods(unittest.TestCase):
             dummydata = {"Hotel": "Trivago"}
             q.enqueue = MagicMock()
             sumosv.q = q
-            sumosv.jsonify = MagicMock(return_value = True)
             output = client.post("/alert",headers={"Authorization": "Basic {user}".format(user=user)},data = dummydata)
             assert(output)
 
