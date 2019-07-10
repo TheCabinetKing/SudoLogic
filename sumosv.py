@@ -40,12 +40,12 @@ def getalert():
     
 
 def slackping(data):
-    import canary
-    canary.slack_client = canary.getclient(canary.token)
+    import slackcommon
+    slackcommon.slack_client = slackcommon.getclient(slackcommon.token)
     print("Handshaking...")
-    canary.handshake()
+    slackcommon.handshake()
     print("Getting config...")
-    canary.CONFIG_OPTIONS=canary.getconfig(canary.CONFIG_OPTIONS)
+    slackcommon.CONFIG_OPTIONS=slackcommon.getconfig(slackcommon.CONFIG_OPTIONS)
     print("Config attained:")
-    print(canary.CONFIG_OPTIONS)
-    canary.alert(data)
+    print(slackcommon.CONFIG_OPTIONS)
+    slackcommon.alert(data)
