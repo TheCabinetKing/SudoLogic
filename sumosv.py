@@ -40,10 +40,10 @@ def getalert():
     
 
 def slackping(data):
-    import slackcommon
+    from slackcommon import slackcommon
     slackcommon.slack_client = slackcommon.getclient(slackcommon.token)
     print("Handshaking...")
-    slackcommon.handshake()
+    slackcommon.handshake(slackcommon.slack_client)
     print("Getting config...")
     slackcommon.CONFIG_OPTIONS=slackcommon.getconfig(slackcommon.CONFIG_OPTIONS)
     print("Config attained:")

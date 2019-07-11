@@ -6,7 +6,7 @@ import logging
 
 token=os.environ.get('SLACK_BOT_TOKEN')
 slack_client = None
-logging.basicConfig(filename="canary.log",filemode='a',format="%(asctime)s - %(name)s - %(levelname)s: %(message)s",datefmt="%y-%m-%d %H:%M:%S",level=logging.INFO)
+
 
 canary_id = None
 
@@ -79,7 +79,7 @@ def getconfig(config_tgt):
         return config_tgt
 
 #Establish connection and use auth.test to confirm server compliance.
-def handshake():
+def handshake(slack_client):
     status = slack_client.rtm_connect(with_team_state=False)
     #Get bot ID from auth call. This will be useful for mention detection.
     try:

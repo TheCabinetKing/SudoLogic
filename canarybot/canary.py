@@ -3,7 +3,14 @@ import time #Used for sleep to avoid network strain.
 from slackclient import SlackClient
 import json
 import logging
+
+import sys
+sys.path.append("..")
 from slackcommon import slackcommon
+
+CONFIG_OPTIONS = slackcommon.CONFIG_OPTIONS
+slack_client = slackcommon.slack_client
+logging.basicConfig(filename="canary.log",filemode='a',format="%(asctime)s - %(name)s - %(levelname)s: %(message)s",datefmt="%y-%m-%d %H:%M:%S",level=logging.INFO)
 
 #Add channel to authorised channel list.
 def addchannel(channel):
@@ -95,7 +102,7 @@ if __name__ == "__main__":
         print(p)
         channel_ls=channel_ls+(p+"\t")
     logging.info("Channel contents: "+channel_ls)
-    if slackcommon.handshake():
+    if slackcommon.handshake(slack_client):
         canary_id = get_id()
         print("Connection established.")
         logging.info("Connection established.")
