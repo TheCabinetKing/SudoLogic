@@ -10,6 +10,9 @@ slack_client = None
 
 canary_id = None
 
+#Config path. Optionally configurable via environment variable (as configuring the config path via the config file is asking for trouble).
+CFGPATH = os.environ.get("SLACK_CONFIG_LOCATION","../config/slack_config.ini")
+
 #Config options, as the name implies. Taken from config.ini, and used to communicate permitted channels etc. between instances.
 CONFIG_OPTIONS = {
     "channels": [], #List of approved channels for posting.
@@ -43,6 +46,7 @@ def alert(data):
         "AlertID": data.get("AlertID","{Unknown ID}")
     }
     logging.info("Propagating alert...")
+    print("Sending message!")
     for approved_channel in CONFIG_OPTIONS["channels"]:
         result = sendmsg(approved_channel,"Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
         if(result is False):
@@ -60,7 +64,7 @@ def alert(data):
 
 #Overwrite config with current status.
 def setconfig(config_tgt):
-    config = open("config.ini",'w')
+    config = open(CFGPATH,'w')
     json.dump(config_tgt,config)
     config.close()
 
@@ -68,7 +72,7 @@ def setconfig(config_tgt):
 def getconfig(config_tgt):
     #Try to get current config
     try:
-        config = open("config.ini",'r')
+        config = open(CFGPATH,'r')
         config_tgt = json.load(config)
         config.close()
         return config_tgt

@@ -14,7 +14,7 @@ q = Queue(connection=redis_conn)
 logging.basicConfig(filename="sumosv.log",filemode='a',format="%(asctime)s - %(name)s - %(levelname)s: %(message)s",datefmt="%y-%m-%d %H:%M:%S",level=logging.INFO)
 
 users = {
-    os.environ.get("SUMO_USER"): generate_password_hash(os.environ.get("SUMO_PASS"))
+    os.environ.get("SUMO_USER",""): generate_password_hash(os.environ.get("SUMO_PASS",""))
 }
 
 @auth.verify_password
@@ -41,6 +41,7 @@ def getalert():
 
 def slackping(data):
     from slackcommon import slackcommon
+    slackcommon.CFGPATH="config/slack_config.ini"
     slackcommon.slack_client = slackcommon.getclient(slackcommon.token)
     print("Handshaking...")
     slackcommon.handshake(slackcommon.slack_client)

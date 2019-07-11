@@ -95,6 +95,7 @@ def get_id():
 #Ensure only one message listener active.
 if __name__ == "__main__":
     slack_client = slackcommon.getclient(slackcommon.token)
+    slackcommon.slack_client = slack_client
     CONFIG_OPTIONS = slackcommon.getconfig(CONFIG_OPTIONS)
     print("Config attained. Channel contents: ")
     channel_ls="" #Log output variable, no use after for loop's log update.
