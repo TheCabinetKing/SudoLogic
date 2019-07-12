@@ -6,6 +6,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import logging
 import os
 
+import sys
+sys.path.append("..")
+
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 
@@ -41,7 +44,7 @@ def getalert():
 
 def slackping(data):
     from slackcommon import slackcommon
-    slackcommon.CFGPATH="config/slack_config.ini"
+    #slackcommon.CFGPATH="config/slack_config.ini"
     slackcommon.slack_client = slackcommon.getclient(slackcommon.token)
     print("Handshaking...")
     slackcommon.handshake(slackcommon.slack_client)

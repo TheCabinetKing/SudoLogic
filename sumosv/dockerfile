@@ -1,0 +1,21 @@
+#3.6.8 not listed, using 3.6.9
+FROM 3.6.9-alpine
+
+#Set up sumosv in /app. Slackcommon will be copied into /app/slackcommon, etc.
+WORKDIR /usr/src/app
+
+#Catch up to requirements.txt.
+RUN pip3 install -r requirements.txt
+
+#Expose port 80 for Sumo access.
+EXPOSE 80
+
+#Define environment vars (authentication information is included here, so fill those in yourself!)
+ENV SUMO_USER {username}
+ENV SUMO_PASS {password}
+ENV FLASK_APP sumosv.py
+ENV FLASK_RUN_HOST 0.0.0.0
+
+COPY sumosv.py .
+
+CMD ["flask","run"]
