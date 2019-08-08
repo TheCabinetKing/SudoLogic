@@ -24,3 +24,22 @@ Have a terminal running redis-server to keep the queue intact. To activate the f
 
 ### Testing
 To run the full unit test battery, run ```python3 -m unittest``` in a terminal from the project directory. Check test_script.py for details on the unit tests present.
+
+## Local Deployment using docker-compose
+
+#### Build and run using Docker Compose
+	$ docker-compose up --build
+
+	// to run processes on the background
+	$ docker-compose up -d --build 
+	
+#### to shut down docker processes
+
+	$ docker-compose down
+
+#### Tips. Useful docker commands
+	// remove unused images
+	$ docker rmi $(docker images -q --no-trunc --filter "dangling=true")
+
+	// delete all docker process and images to start from the clean slate.
+	$ docker system prune -a

@@ -1,7 +1,4 @@
-import os #Used for token auth.
 import time #Used for sleep to avoid network strain.
-from slackclient import SlackClient
-import json
 import logging
 
 import sys

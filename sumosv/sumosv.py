@@ -12,7 +12,10 @@ sys.path.append("..")
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 
-redis_conn=Redis()
+redis_host = os.environ.get("REDIS_HOST", "localhost")
+redis_port = os.environ.get("REDIS_PORT", 6379)
+
+redis_conn = Redis(host=redis_host, port=redis_port)
 q = Queue(connection=redis_conn)
 logging.basicConfig(filename="sumosv.log",filemode='a',format="%(asctime)s - %(name)s - %(levelname)s: %(message)s",datefmt="%y-%m-%d %H:%M:%S",level=logging.INFO)
 
