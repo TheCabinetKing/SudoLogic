@@ -13,13 +13,15 @@ services:
     build:
       context: .
       dockerfile: ./sumosv/Dockerfile
-    ports:
-      - 80:5000
+    #ports: --> now hidden behind nginx
+    #  - 5000:5000
     environment:
       - SUMO_USER=${sumo_user}
       - SUMO_PASS=${sumo_pass}
       - FLASK_APP=sumosv.py
       - FLASK_RUN_HOST=0.0.0.0
+      - FLASK_RUN_PORT=5000
+      - FLASK_DEBUG=True
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - SLACK_CONFIG_LOCATION=./config/slack_config.ini
@@ -58,3 +60,16 @@ services:
       - sumosv
       - canarybot
       - redis
+
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 80:80
+    links:
+      - sumosv
+    depends_on:
+      - sumosv
