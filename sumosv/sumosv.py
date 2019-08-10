@@ -38,8 +38,7 @@ def verify_password(username,password):
 #It is assumed that all data is received intact.
 @app.route('/healthcheck',methods=['GET'])
 def healthcheck():
-    logging.info(f">>> HEALTHCHECK for users {users}")
-    return 'Test', 200
+    return '', 200
 
 
 #It is assumed that all data is received intact.
