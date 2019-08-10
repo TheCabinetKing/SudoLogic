@@ -25,13 +25,27 @@ Have a terminal running redis-server to keep the queue intact. To activate the f
 ### Testing
 To run the full unit test battery, run ```python3 -m unittest``` in a terminal from the project directory. Check test_script.py for details on the unit tests present.
 
-## Local Deployment using docker-compose
+## Using Docker
+Edit the docker-compose.yml if needed.  
+
+#### Create an .env file in the project root directory
+The environment variables in the .env file will be automatically loaded when the docker-compose command is used. 
+    
+    $ mv .env_example .env
+    
+#### Replace those placeholder values with real ones in the .env file
+
+    sumo_user=PLACE_YOUR_SUMO_USER
+    sumo_pass=PLACE_YOUR_SUMO_PASS
+    slack_token=PLACE_YOUR_SLACK_TOKEN    
 
 #### Build and run using Docker Compose
 	$ docker-compose up --build
 
 	// to run processes on the background
 	$ docker-compose up -d --build 
+	
+	// After all services started OK then try http://localhost/sumo/healthcheck
 	
 #### to shut down docker processes
 
