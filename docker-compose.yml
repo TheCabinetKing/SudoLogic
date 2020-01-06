@@ -54,6 +54,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - QUEUE_NAME=test
+      - SLACK_BOT_TOKEN=${slack_token}
+      - SLACK_CONFIG_LOCATION=./config/slack_config.ini
     links:
       - redis
     depends_on:
@@ -64,8 +66,8 @@ services:
   nginx:
     container_name: nginx
     build:
-      context: ./nginx
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./nginx/Dockerfile
     restart: always
     ports:
       - 80:80

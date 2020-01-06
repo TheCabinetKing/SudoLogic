@@ -48,7 +48,6 @@ def getalert():
     logging.info("Post received!")
     #Get message from posted json
     msg = request.get_json(force=True)
-    logging.info("JSON acquired.")
     #Enqueue task for pinging slack, pass off to worker queue.
     q.enqueue(slackping,msg)
     #Enqueue other ping functions here when expanding.

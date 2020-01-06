@@ -47,6 +47,7 @@ def alert(data):
     }
     logging.info("Propagating alert...")
     print("Sending message!")
+    '''
     for approved_channel in CONFIG_OPTIONS["channels"]:
         result = sendmsg(approved_channel,"Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
         if(result is False):
@@ -59,6 +60,9 @@ def alert(data):
                 if(wait>=deadline):
                     logging.error("Failed!")
                     return False
+    '''
+    #alert-test
+    result = sendmsg('#alert-test',"Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
     logging.info("Done!")
     return True
 

@@ -6,3 +6,7 @@ dump.rdb
 *.log
 .idea
 .env
+.dist/*
+*.zip
+Dockerrun.aws.json
+.DS_Store

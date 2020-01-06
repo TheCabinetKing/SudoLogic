@@ -1,0 +1,40 @@
+{
+  "AWSEBDockerrunVersion": 2,
+  "containerDefinitions": [
+		{
+      "name": "sumosv",
+      "image": "YOUR_IMAGE_URI_IN_ECR/sumosv:latest",
+      "essential": true,
+      "portMappings": [],
+      "environment": [],
+      "memory": 128
+    },
+    {
+      "name": "worker",
+      "image": "YOUR_IMAGE_URI_IN_ECR/worker:latest",
+      "essential": true,
+      "memory": 128,
+      "portMappings": [],
+      "environment": [],
+      "links": [
+        "sumosv"
+      ]
+    },
+    {
+      "name": "nginx",
+      "image": "YOUR_IMAGE_URI_IN_ECR/nginx:latest",
+      "essential": true,
+      "memory": 128,
+      "portMappings": [
+        {
+          "hostPort": 80,
+          "containerPort": 80
+        }
+      ],
+      "environment": [],
+      "links": [
+        "sumosv"
+      ]
+    }
+  ]
+}
