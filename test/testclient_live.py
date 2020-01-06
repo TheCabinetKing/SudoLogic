@@ -12,8 +12,8 @@ sumo_auth = "Basic "+sumo_auth
 #Body to post
 body = {"AlertThreshold": "0 last 10 minutes", "AlertSource": "Intern Consulting, Co.", "AlertID": "189224"}
 
-#Target URL; remember to use flask with the "-p 1337" argument! That's mostly to test that non-default ports work, as you need port 80 for production.
-tgtsv = "http://127.0.0.1:1337/alert"
+#Target URL; keep in mind that with Docker, nginx automatically redirects to alert.
+tgtsv = "http://127.0.0.1/sumo/alert"
 
 req=urllib.request.Request(tgtsv)
 req.add_header('Content-Type','application/json; charset=utf-8')
