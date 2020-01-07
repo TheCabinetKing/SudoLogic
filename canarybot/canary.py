@@ -14,6 +14,7 @@ def addchannel(channel):
     if channel not in CONFIG_OPTIONS["channels"]:
         CONFIG_OPTIONS["channels"].append(channel)
         logging.info("Added channel {0} to alert list".format(channel))
+        print("Added channel {0} to alert list".format(channel))
         slackcommon.setconfig(CONFIG_OPTIONS)
 
 #Remove channel from authorised channel list.
@@ -21,6 +22,7 @@ def rmchannel(channel):
     if channel in CONFIG_OPTIONS["channels"]:
         CONFIG_OPTIONS["channels"].remove(channel)
         logging.info("Removed channel {0} from alert list".format(channel))
+        print("Removed channel {0} from alert list".format(channel))
         slackcommon.setconfig(CONFIG_OPTIONS)
 
 #Helper function for "help" command; commands can be added in the cmdlist variables. Remember that the existing config would override it!
@@ -35,6 +37,7 @@ def sendhelp(channel):
         msgout = msgout + ("\t*"+command+"*"+" - "+CONFIG_OPTIONS["cmdlist_men"][command]+"\n")
     slackcommon.sendmsg(channel, msgout)
     logging.info("Help message sent to channel {0}".format(channel))
+    print("Help message sent to channel {0}".format(channel))
 
 def dmhandler(channel,msg):
     #Subscription
@@ -50,6 +53,13 @@ def dmhandler(channel,msg):
     #Remember to document all added commands in *both* help responses!
     if(msg.startswith("help")):
         sendhelp(channel)
+    if(msg.startswith("printstate")):
+        slackcommon.sendmsg(channel,"Canary:")
+        for i in CONFIG_OPTIONS["channels"]:
+            slackcommon.sendmsg(channel,i)
+        slackcommon.sendmsg(channel,"Slackcommon:")
+        for i in slackcommon.CONFIG_OPTIONS["channels"]:
+            slackcommon.sendmsg(channel,i)
 
 def mentionhandler(channel,msg):
     #Add current channel to alert list.
@@ -73,6 +83,7 @@ def parse_incoming(slack_events):
             channel = event["channel"]
             msg = event["text"]
             logging.info("Message received from {0} in channel {1}, contents: {2}".format(event["user"],channel,msg))
+            print("Message received from {0} in channel {1}, contents: {2}".format(event["user"],channel,msg))
             msg = msg.strip(',.').lower()
             #Command handling for direct messaging.
             if(channel.startswith('D')):

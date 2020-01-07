@@ -1,7 +1,7 @@
 env/
 __pycache__/
 .vscode/
-config.ini
+config/slack_config.ini
 dump.rdb
 *.log
 .idea
