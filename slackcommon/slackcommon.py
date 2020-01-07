@@ -75,10 +75,6 @@ def alert(data):
 def setconfig(config_tgt):
     config = json.dumps(config_tgt)
     r.set("SlackConfig",config)
-'''def setconfig(config_tgt):
-    config = open(CFGPATH,'w')
-    json.dump(config_tgt,config)
-    config.close()'''
 
 #Config handler, called at the start of all canary instances, including alert propagators.
 def getconfig(config_tgt):
@@ -99,18 +95,6 @@ def getconfig(config_tgt):
     #Config found, continue as usual.
     config_tgt = json.loads(config)
     return config_tgt
-'''def getconfig(config_tgt):
-    #Try to get current config
-    try:
-        config = open(CFGPATH,'r')
-        config_tgt = json.load(config)
-        config.close()
-        return config_tgt
-    #If config file not found, create one with default params.
-    except FileNotFoundError:
-        print("File not found. Setting new default...")
-        setconfig(config_tgt)
-        return config_tgt'''
 
 
 
