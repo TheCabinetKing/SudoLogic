@@ -3,9 +3,14 @@ import time #Used for sleep to avoid network strain.
 from slackclient import SlackClient
 import json
 import logging
+from redis import Redis
 
 token=os.environ.get('SLACK_BOT_TOKEN')
 slack_client = None
+
+redis_host = os.environ.get("REDIS_HOST", "redis")
+redis_port = os.environ.get("REDIS_PORT", 6379)
+r = Redis(host=redis_host, port=redis_port)
 
 
 canary_id = None
@@ -68,12 +73,33 @@ def alert(data):
 
 #Overwrite config with current status.
 def setconfig(config_tgt):
+    config = json.dumps(config_tgt)
+    r.set("SlackConfig",config)
+'''def setconfig(config_tgt):
     config = open(CFGPATH,'w')
     json.dump(config_tgt,config)
-    config.close()
+    config.close()'''
 
 #Config handler, called at the start of all canary instances, including alert propagators.
 def getconfig(config_tgt):
+    #Try to get current config
+    config = r.get("SlackConfig")
+    if config is None:
+        #If no config set in Redis, check for config file.
+        try:
+            cfgfile = open(CFGPATH,'r')
+            config_tgt = json.load(cfgfile)
+            cfgfile.close()
+            return config_tgt
+        #If no config file, set 'vanilla' config.
+        except FileNotFoundError:
+            print("Config not found. Setting new default...")
+            setconfig(config_tgt)
+            return config_tgt
+    #Config found, continue as usual.
+    config_tgt = json.loads(config)
+    return config_tgt
+'''def getconfig(config_tgt):
     #Try to get current config
     try:
         config = open(CFGPATH,'r')
@@ -84,7 +110,9 @@ def getconfig(config_tgt):
     except FileNotFoundError:
         print("File not found. Setting new default...")
         setconfig(config_tgt)
-        return config_tgt
+        return config_tgt'''
+
+
 
 #Establish connection and use auth.test to confirm server compliance.
 def handshake(slack_client):
