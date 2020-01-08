@@ -44,23 +44,28 @@ def sendmsg(channel,tosend):
 
 #Sends alerts to Slack. Returns True if successful, False otherwise (timeout).
 def alert(data):
-    output = {
+    '''output = {
         "AlertSource": data.get("AlertSource","{Unknown Source}"),
         "AlertStatus": data.get("AlertStatus","{Unknown Status}"),
         "AlertThreshold": data.get("AlertThreshold","{Unknown Threshold}"),
         "AlertID": data.get("AlertID","{Unknown ID}")
+    }'''
+    output = {
+        "msg": data.get("msg","{Propagation Failure}")
     }
     logging.info("Propagating alert...")
     print("Sending message!")
     
     for approved_channel in CONFIG_OPTIONS["channels"]:
-        result = sendmsg(approved_channel,"Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
+        #result = sendmsg(approved_channel,"Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
+        result = sendmsg(approved_channel,"{msg}".format(**output))
         if(result is False):
             deadline = CONFIG_OPTIONS["deadline"]
             wait = 1
             while(result is False):
                 time.sleep(wait)
-                result = sendmsg(approved_channel,"Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
+                #result = sendmsg(approved_channel,"Alert from {AlertSource} (status {AlertStatus}).\nReason: {AlertThreshold}\nID: {AlertID}".format(**output))
+                result = sendmsg(approved_channel,"{msg}".format(**output))
                 wait *= 2
                 if(wait>=deadline):
                     logging.error("Failed!")
