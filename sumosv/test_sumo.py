@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock,patch,mock_open
 import sumosv
-from canarybot import canary
+from slackcommon import slackcommon
 
 
 class Slack_Client:
@@ -43,9 +43,9 @@ class TestSumoMethods(unittest.TestCase):
             dummydata = {"Hotel": "Trivago"}
             q.enqueue = MagicMock()
             sumosv.q = q
-            dummyjson=canary.json.dumps(dummydata)
+            dummyjson=slackcommon.json.dumps(dummydata)
             dummyjsonasbytes=dummyjson.encode('utf-8')
-            output = client.post("/alert",headers={"Authorization": "Basic {user}".format(user=test_b64), 'Content-Length': len(dummyjson), "Content-Type": "application/json; charset=utf-8"}, data = canary.json.dumps(dummydata))
+            output = client.post("/alert",headers={"Authorization": "Basic {user}".format(user=test_b64), 'Content-Length': len(dummyjson), "Content-Type": "application/json; charset=utf-8"}, data = slackcommon.json.dumps(dummydata))
             assert(output.status_code == 200)
     
     #Test alert functionality when credentials incorrect.
