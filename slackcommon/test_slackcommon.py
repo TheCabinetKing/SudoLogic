@@ -48,15 +48,24 @@ class TestSlackCommonMethods(unittest.TestCase):
         assert(result is False)
         #Will fail test if cannot detect API being down.
 
-    @patch('slackcommon.open', mock_open())
+#TODO: Change config unit tests to fit with new Redis-based functions.
+
     def test_setconfig(self):
-        patch('__main__.open', mock_open())
         curr_config = {"channels": []}
+        slackcommon.r.set = MagicMock()
         slackcommon.setconfig(curr_config)
+        assert(slackcommon.r.set.called)
+
+    def test_getconfig_redis(self):
+        curr_config = {"channels": ["Nope"]}
+        slackcommon.r.get = MagicMock(return_value = "{\"channels\": [\"DDD\"]}")
+        curr_config = slackcommon.getconfig(curr_config)
+        assert(curr_config["channels"]==["DDD"])
 
     @patch('slackcommon.open', mock_open(read_data = "{\"channels\": [\"DDD\"]}"))
-    def test_getconfig(self):
+    def test_getconfig_noredis(self):
         curr_config = {"channels": ["Nope"]}
+        slackcommon.r.get = MagicMock(return_value=None)
         curr_config = slackcommon.getconfig(curr_config)
         assert(curr_config["channels"]==["DDD"])
 
