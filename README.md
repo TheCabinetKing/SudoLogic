@@ -23,7 +23,7 @@ Get the token for your desired bot from Slack's application interface. Set it as
 Have a terminal running redis-server to keep the queue intact. To activate the first worker, in a terminal type ```rq worker default```.
 
 ### Testing
-To run the full unit test battery, run ```python3 -m unittest``` in a terminal from the project directory. Check test_script.py for details on the unit tests present.
+To run the full unit test battery, run ```python3 -m unittest``` in a terminal in the directory of each test script.
 
 ## Using Docker
 Edit the docker-compose.yml if needed.  
