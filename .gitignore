@@ -4,3 +4,7 @@ __pycache__/
 config.ini
 dump.rdb
 *.log
+.env
+.idea
+Dockerrun.aws.json
+*.zip
