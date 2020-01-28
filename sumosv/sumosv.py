@@ -6,15 +6,26 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import logging
 import os
 
+import sys
+sys.path.append("..")
+
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 
-redis_conn=Redis()
+flask_host = os.environ.get("FLASK_RUN_HOST", "0.0.0.0")
+flask_port = os.environ.get("FLASK_RUN_PORT", 5000)
+flask_debug = bool(os.environ.get("FLASK_DEBUG", False))
+
+redis_host = os.environ.get("REDIS_HOST", "localhost")
+redis_port = os.environ.get("REDIS_PORT", 6379)
+
+
+redis_conn = Redis(host=redis_host, port=redis_port)
 q = Queue(connection=redis_conn)
 logging.basicConfig(filename="sumosv.log",filemode='a',format="%(asctime)s - %(name)s - %(levelname)s: %(message)s",datefmt="%y-%m-%d %H:%M:%S",level=logging.INFO)
 
 users = {
-    os.environ.get("SUMO_USER"): generate_password_hash(os.environ.get("SUMO_PASS"))
+    os.environ.get("SUMO_USER",""): generate_password_hash(os.environ.get("SUMO_PASS",""))
 }
 
 @auth.verify_password
@@ -23,6 +34,13 @@ def verify_password(username,password):
         return check_password_hash(users.get(username), password)
     return False
 
+
+#It is assumed that all data is received intact.
+@app.route('/healthcheck',methods=['GET'])
+def healthcheck():
+    return 'OK', 200
+
+
 #It is assumed that all data is received intact.
 @app.route('/alert',methods=['POST'])
 @auth.login_required
@@ -30,7 +48,6 @@ def getalert():
     logging.info("Post received!")
     #Get message from posted json
     msg = request.get_json(force=True)
-    logging.info("JSON acquired.")
     #Enqueue task for pinging slack, pass off to worker queue.
     q.enqueue(slackping,msg)
     #Enqueue other ping functions here when expanding.
@@ -40,12 +57,16 @@ def getalert():
     
 
 def slackping(data):
-    import canary
-    canary.slack_client = canary.getclient(canary.token)
+    from slackcommon import slackcommon
+    #slackcommon.CFGPATH="config/slack_config.ini"
+    slackcommon.slack_client = slackcommon.getclient(slackcommon.token)
     print("Handshaking...")
-    canary.handshake()
+    slackcommon.handshake(slackcommon.slack_client)
     print("Getting config...")
-    canary.CONFIG_OPTIONS=canary.getconfig(canary.CONFIG_OPTIONS)
+    slackcommon.CONFIG_OPTIONS=slackcommon.getconfig(slackcommon.CONFIG_OPTIONS)
     print("Config attained:")
-    print(canary.CONFIG_OPTIONS)
-    canary.alert(data)
+    print(slackcommon.CONFIG_OPTIONS)
+    slackcommon.alert(data)
+
+if __name__ == "__main__":
+    app.run(debug=flask_debug, host=flask_host, port=flask_port)

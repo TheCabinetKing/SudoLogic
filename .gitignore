@@ -1,10 +1,11 @@
 env/
 __pycache__/
 .vscode/
-config.ini
+config/slack_config.ini
 dump.rdb
 *.log
-.env
 .idea
-Dockerrun.aws.json
+.env
 *.zip
+Dockerrun.aws.json
+.DS_Store
